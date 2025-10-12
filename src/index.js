@@ -1,21 +1,34 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
+import { existsSync } from 'fs'
 import morgan from 'morgan'
+import { dirname, resolve } from 'path'
+import { fileURLToPath } from 'url'
 import connectDB from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import projectRoutes from './routes/projectRoutes.js'
 
-// Load environment variables based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production'
-  ? '.env.production.local'
-  : '.env.development.local'
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
-dotenv.config({ path: envFile })
+// Load environment variables with fallback
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const envFile = `.env.${NODE_ENV}.local`
+const envPath = resolve(__dirname, '..', envFile)
+
+// Check if env file exists, fallback to .env
+if (existsSync(envPath)) {
+  dotenv.config({ path: envPath })
+  console.log(`✅ Loaded environment from ${envFile}`)
+} else {
+  dotenv.config()
+  console.warn(`⚠️  ${envFile} not found, using default .env`)
+}
 
 const app = express()
 const PORT = process.env.PORT || 5000
-const NODE_ENV = process.env.NODE_ENV || 'development'
 
 // Connect to MongoDB
 connectDB()
