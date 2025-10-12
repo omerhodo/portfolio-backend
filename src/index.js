@@ -34,8 +34,25 @@ const PORT = process.env.PORT || 5000
 connectDB()
 
 // Middleware
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://xhodo.com',
+  'https://www.xhodo.com'
+].filter(Boolean)
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true)
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 }
