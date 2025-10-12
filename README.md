@@ -39,7 +39,7 @@ yarn start
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `PORT` | Server port | No (default: 5001) |
+| `PORT` | Server port | No (default: 5000) |
 | `NODE_ENV` | Environment mode | No (default: development) |
 | `MONGODB_URI` | MongoDB connection string | Yes |
 | `JWT_SECRET` | Secret key for JWT | Yes |

@@ -6,10 +6,15 @@ import connectDB from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import projectRoutes from './routes/projectRoutes.js'
 
-dotenv.config()
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production.local'
+  : '.env.development.local'
+
+dotenv.config({ path: envFile })
 
 const app = express()
-const PORT = process.env.PORT || 5001
+const PORT = process.env.PORT || 5000
 const NODE_ENV = process.env.NODE_ENV || 'development'
 
 // Connect to MongoDB
@@ -17,7 +22,7 @@ connectDB()
 
 // Middleware
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5001',
+  origin: process.env.CLIENT_URL || 'http://localhost:5000',
   credentials: true,
   optionsSuccessStatus: 200
 }
