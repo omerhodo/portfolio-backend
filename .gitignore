@@ -28,3 +28,7 @@ lerna-debug.log*
 # Build
 dist/
 build/
+
+# Uploads
+uploads/*
+!uploads/.gitkeep

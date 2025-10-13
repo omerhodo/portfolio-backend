@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import express from 'express'
 import { existsSync } from 'fs'
 import morgan from 'morgan'
-import { dirname, resolve } from 'path'
+import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import connectDB from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
@@ -63,6 +63,9 @@ app.use(express.urlencoded({ extended: true }))
 if (NODE_ENV === 'development') {
   app.use(morgan('dev'))
 }
+
+// Static files - uploads klasörünü serve et
+app.use('/uploads', express.static(join(__dirname, '..', 'uploads')))
 
 // Routes
 app.use('/api/auth', authRoutes)
