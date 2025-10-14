@@ -34,9 +34,9 @@ export const getProjectById = async (req, res) => {
 // @route   POST /api/projects
 // @access  Public (should be protected in production)
 export const createProject = async (req, res) => {
-  try {
-    console.log('Request body:', req.body)
+  let uploadedImagePublicId = null // Cloudinary cleanup için
 
+  try {
     // Multer req.body'yi parse eder
     const projectData = { ...req.body }
 
@@ -54,6 +54,9 @@ export const createProject = async (req, res) => {
       const result = await uploadBuffer(req.file.buffer, 'portfolio')
       projectData.imageUrl = result.secure_url || result.url
       projectData.imagePublicId = result.public_id
+      uploadedImagePublicId = result.public_id
+    } else {
+      console.log('No image file uploaded')
     }
 
     // Technologies string ise array'e çevir
@@ -64,18 +67,12 @@ export const createProject = async (req, res) => {
         .filter(tech => tech !== '')
     }
 
+    console.log('Final projectData before create:', projectData)
+
     const project = await Project.create(projectData)
     res.status(201).json(project)
   } catch (error) {
-    // Eğer Cloudinary'e yüklendiyse ve hata olursa, oradaki görseli sil
-    if (req.file && projectData.imagePublicId) {
-      try {
-        await deleteByPublicId(projectData.imagePublicId)
-      } catch (deleteErr) {
-        console.error('Cloudinary cleanup failed:', deleteErr)
-      }
-    }
-    res.status(400).json({ message: error.message })
+    res.status(400).json({ message: error.message || 'Validation failed' })
   }
 }
 
@@ -83,6 +80,8 @@ export const createProject = async (req, res) => {
 // @route   PUT /api/projects/:id
 // @access  Public (should be protected in production)
 export const updateProject = async (req, res) => {
+  let uploadedImagePublicId = null // Cloudinary cleanup için
+
   try {
     const oldProject = await Project.findById(req.params.id)
 
@@ -97,6 +96,7 @@ export const updateProject = async (req, res) => {
       const result = await uploadBuffer(req.file.buffer, 'portfolio')
       updateData.imageUrl = result.secure_url || result.url
       updateData.imagePublicId = result.public_id
+      uploadedImagePublicId = result.public_id // Cleanup için sakla
 
       // Eski Cloudinary görüntüsünü sil
       if (oldProject.imagePublicId) {
@@ -121,9 +121,9 @@ export const updateProject = async (req, res) => {
     res.json(project)
   } catch (error) {
     // Eğer yeni görsel yüklendiyse ve hata olursa, Cloudinary'den sil
-    if (req.file && updateData.imagePublicId) {
+    if (req.file && uploadedImagePublicId) {
       try {
-        await deleteByPublicId(updateData.imagePublicId)
+        await deleteByPublicId(uploadedImagePublicId)
       } catch (deleteErr) {
         console.error('Cloudinary cleanup failed:', deleteErr)
       }
