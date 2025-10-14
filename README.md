@@ -44,6 +44,17 @@ yarn start
 | `MONGODB_URI` | MongoDB connection string | Yes |
 | `JWT_SECRET` | Secret key for JWT | Yes |
 | `CLIENT_URL` | Frontend URL for CORS | Yes |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | Yes |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | Yes |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | Yes |
+
+### Cloudinary Setup
+
+This app uses [Cloudinary](https://cloudinary.com/) for image hosting and management:
+
+1. Create a free Cloudinary account at https://cloudinary.com/
+2. Get your credentials from the Dashboard
+3. Add the three Cloudinary environment variables to your `.env` file
 
 ## 🛠️ API Endpoints
 

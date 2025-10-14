@@ -1,10 +1,5 @@
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { deleteByPublicId, uploadBuffer } from '../config/cloudinary.js'
 import Project from '../models/Project.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 // @desc    Get all projects
 // @route   GET /api/projects
@@ -54,9 +49,11 @@ export const createProject = async (req, res) => {
       projectData.order = Number(projectData.order)
     }
 
-    // Eğer dosya yüklendiyse, imagePath'i kaydet
-    if (req.file) {
-      projectData.imagePath = `/uploads/${req.file.filename}`
+    // Eğer dosya yüklendiyse, Cloudinary'e yükle
+    if (req.file && req.file.buffer) {
+      const result = await uploadBuffer(req.file.buffer, 'portfolio')
+      projectData.imageUrl = result.secure_url || result.url
+      projectData.imagePublicId = result.public_id
     }
 
     // Technologies string ise array'e çevir
@@ -70,11 +67,12 @@ export const createProject = async (req, res) => {
     const project = await Project.create(projectData)
     res.status(201).json(project)
   } catch (error) {
-    // Hata olursa yüklenen dosyayı sil
-    if (req.file) {
-      const filePath = path.join(__dirname, '../../uploads', req.file.filename)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
+    // Eğer Cloudinary'e yüklendiyse ve hata olursa, oradaki görseli sil
+    if (req.file && projectData.imagePublicId) {
+      try {
+        await deleteByPublicId(projectData.imagePublicId)
+      } catch (deleteErr) {
+        console.error('Cloudinary cleanup failed:', deleteErr)
       }
     }
     res.status(400).json({ message: error.message })
@@ -94,16 +92,15 @@ export const updateProject = async (req, res) => {
 
     const updateData = { ...req.body }
 
-    // Eğer yeni dosya yüklendiyse
-    if (req.file) {
-      updateData.imagePath = `/uploads/${req.file.filename}`
+    // Eğer yeni dosya yüklendiyse, Cloudinary'e yükle
+    if (req.file && req.file.buffer) {
+      const result = await uploadBuffer(req.file.buffer, 'portfolio')
+      updateData.imageUrl = result.secure_url || result.url
+      updateData.imagePublicId = result.public_id
 
-      // Eski dosyayı sil
-      if (oldProject.imagePath) {
-        const oldFilePath = path.join(__dirname, '../../', oldProject.imagePath)
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath)
-        }
+      // Eski Cloudinary görüntüsünü sil
+      if (oldProject.imagePublicId) {
+        await deleteByPublicId(oldProject.imagePublicId)
       }
     }
 
@@ -123,11 +120,12 @@ export const updateProject = async (req, res) => {
 
     res.json(project)
   } catch (error) {
-    // Hata olursa yeni yüklenen dosyayı sil
-    if (req.file) {
-      const filePath = path.join(__dirname, '../../uploads', req.file.filename)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
+    // Eğer yeni görsel yüklendiyse ve hata olursa, Cloudinary'den sil
+    if (req.file && updateData.imagePublicId) {
+      try {
+        await deleteByPublicId(updateData.imagePublicId)
+      } catch (deleteErr) {
+        console.error('Cloudinary cleanup failed:', deleteErr)
       }
     }
     res.status(400).json({ message: error.message })
@@ -145,11 +143,12 @@ export const deleteProject = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' })
     }
 
-    // Proje silinirken ilişkili görseli de sil
-    if (project.imagePath) {
-      const filePath = path.join(__dirname, '../../', project.imagePath)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
+    // Proje silinirken Cloudinary'deki görseli de sil
+    if (project.imagePublicId) {
+      try {
+        await deleteByPublicId(project.imagePublicId)
+      } catch (deleteErr) {
+        console.error('Cloudinary cleanup failed:', deleteErr)
       }
     }
 

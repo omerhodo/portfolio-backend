@@ -22,11 +22,11 @@ const projectSchema = new mongoose.Schema(
       type: String,
       trim: true
     }],
-    imagePath: {
+    imageUrl: {
       type: String,
       default: ''
     },
-    imageUrl: {
+    imagePublicId: {
       type: String,
       default: ''
     },
