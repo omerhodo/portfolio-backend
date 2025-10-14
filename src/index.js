@@ -15,16 +15,21 @@ const __dirname = dirname(__filename)
 
 // Load environment variables with fallback
 const NODE_ENV = process.env.NODE_ENV || 'development'
-const envFile = `.env.${NODE_ENV}.local`
-const envPath = resolve(__dirname, '..', envFile)
 
-// Check if env file exists, fallback to .env
-if (existsSync(envPath)) {
-  dotenv.config({ path: envPath })
-  console.log(`✅ Loaded environment from ${envFile}`)
-} else {
+if (NODE_ENV === 'production') {
   dotenv.config()
-  console.warn(`⚠️  ${envFile} not found, using default .env`)
+  console.log(`✅ Production mode: Using hosting platform environment variables`)
+} else {
+  const envFile = `.env.${NODE_ENV}.local`
+  const envPath = resolve(__dirname, '..', envFile)
+
+  if (existsSync(envPath)) {
+    dotenv.config({ path: envPath })
+    console.log(`✅ Loaded environment from ${envFile}`)
+  } else {
+    dotenv.config()
+    console.warn(`⚠️  ${envFile} not found, using default .env`)
+  }
 }
 
 const app = express()
