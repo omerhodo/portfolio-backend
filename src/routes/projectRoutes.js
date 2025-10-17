@@ -3,6 +3,7 @@ import {
   createProject,
   deleteProject,
   getProjectById,
+  getProjectBySlug,
   getProjects,
   updateProject
 } from '../controllers/projectController.js'
@@ -20,6 +21,9 @@ const debugMulter = (req, res, next) => {
 router.route('/')
   .get(getProjects)
   .post(protect, admin, debugMulter, upload.single('image'), createProject)
+
+router.route('/slug/:slug')
+  .get(getProjectBySlug)
 
 router.route('/:id')
   .get(getProjectById)
