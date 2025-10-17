@@ -12,7 +12,11 @@ const verifyRecaptcha = async (token) => {
     }
 
     const response = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
+      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`,
+      {},
+      {
+        timeout: 10000, // 10 seconds timeout
+      }
     );
 
     return response.data;
@@ -61,6 +65,9 @@ export const sendContactEmail = async (req, res) => {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
       },
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000, // 10 seconds
+      socketTimeout: 10000, // 10 seconds
     });
 
     // Email options
@@ -121,9 +128,28 @@ Time: ${new Date().toLocaleString()}
 
   } catch (error) {
     console.error('Contact form error:', error);
-    res.status(500).json({
-      message: error.message || 'Failed to send message. Please try again later.',
-      success: false
+
+    // Handle different error types
+    let statusCode = 500;
+    let errorMessage = 'Failed to send message. Please try again later.';
+
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      statusCode = 504;
+      errorMessage = 'Request timeout. Email service is not responding.';
+    } else if (error.code === 'EAUTH') {
+      statusCode = 503;
+      errorMessage = 'Email authentication failed. Please contact administrator.';
+    } else if (error.code === 'ECONNECTION') {
+      statusCode = 503;
+      errorMessage = 'Cannot connect to email service. Please try again later.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    res.status(statusCode).json({
+      message: errorMessage,
+      success: false,
+      ...(process.env.NODE_ENV === 'development' && { error: error.code || 'UNKNOWN' })
     });
   }
 };
