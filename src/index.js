@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import connectDB from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
+import contactRoutes from './routes/contactRoutes.js'
 import projectRoutes from './routes/projectRoutes.js'
 
 // Get __dirname equivalent in ES modules
@@ -76,6 +77,7 @@ app.use('/api/uploads', express.static(join(__dirname, '..', 'uploads')))
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/projects', projectRoutes)
+app.use('/api/contact', contactRoutes)
 
 // Health check endpoint
 app.get('/', (req, res) => {
