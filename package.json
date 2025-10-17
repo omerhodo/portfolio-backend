@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed": "node src/seed.js",
+    "add-slugs": "node src/addSlugsToProjects.js",
     "build": "echo 'No build step required for Node.js'",
     "prod": "NODE_ENV=production node src/index.js"
   },
