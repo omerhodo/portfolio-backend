@@ -45,6 +45,10 @@ const projectSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    privacyPolicy: {
+      type: String,
+      default: ''
+    },
     featured: {
       type: Boolean,
       default: false
