@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 const projectSchema = new mongoose.Schema(
   {
@@ -7,6 +7,13 @@ const projectSchema = new mongoose.Schema(
       required: [true, 'Please add a title'],
       trim: true,
       maxlength: [100, 'Title cannot be more than 100 characters']
+    },
+    slug: {
+      type: String,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true
     },
     description: {
       type: String,
@@ -51,6 +58,19 @@ const projectSchema = new mongoose.Schema(
     timestamps: true
   }
 )
+
+// Auto-generate slug from title before saving
+projectSchema.pre('save', function(next) {
+  if (this.isModified('title') && !this.slug) {
+    this.slug = this.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/[\s_-]+/g, '-')  // Replace spaces/underscores with hyphens
+      .replace(/^-+|-+$/g, '');   // Remove leading/trailing hyphens
+  }
+  next();
+});
 
 const Project = mongoose.model('Project', projectSchema)
 

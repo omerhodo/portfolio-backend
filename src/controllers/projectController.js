@@ -30,6 +30,23 @@ export const getProjectById = async (req, res) => {
   }
 }
 
+// @desc    Get single project by slug
+// @route   GET /api/projects/slug/:slug
+// @access  Public
+export const getProjectBySlug = async (req, res) => {
+  try {
+    const project = await Project.findOne({ slug: req.params.slug })
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' })
+    }
+
+    res.json(project)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
 // @desc    Create new project
 // @route   POST /api/projects
 // @access  Public (should be protected in production)
